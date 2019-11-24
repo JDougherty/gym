@@ -133,24 +133,22 @@ class FrozenLakeEnv(discrete.DiscreteEnv):
                 for a in range(4):
                     li = P[s][a]
                     letter = desc[row, col]
-                    if letter in b'GH':
-                        li.append((1.0, s, 0, True))
-                    else:
-                        if is_slippery:
-                            for b in [(a-1)%4, a, (a+1)%4]:
-                                newrow, newcol = inc(row, col, b)
-                                newstate = to_s(newrow, newcol)
-                                newletter = desc[newrow, newcol]
-                                done = bytes(newletter) in b'GH'
-                                rew = float(newletter == b'G')
-                                li.append((1.0/3.0, newstate, rew, done))
-                        else:
-                            newrow, newcol = inc(row, col, a)
+
+                    if is_slippery:
+                        for b in [(a-1)%4, a, (a+1)%4]:
+                            newrow, newcol = inc(row, col, b)
                             newstate = to_s(newrow, newcol)
                             newletter = desc[newrow, newcol]
                             done = bytes(newletter) in b'GH'
                             rew = float(newletter == b'G')
-                            li.append((1.0, newstate, rew, done))
+                            li.append((1.0/3.0, newstate, rew, done))
+                    else:
+                        newrow, newcol = inc(row, col, a)
+                        newstate = to_s(newrow, newcol)
+                        newletter = desc[newrow, newcol]
+                        done = bytes(newletter) in b'GH'
+                        rew = float(newletter == b'G')
+                        li.append((1.0, newstate, rew, done))
 
         super(FrozenLakeEnv, self).__init__(nS, nA, P, isd)
 
