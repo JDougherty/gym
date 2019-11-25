@@ -154,7 +154,7 @@ class FrozenLakeEnv(discrete.DiscreteEnv):
                                 newstate = to_s(newrow, newcol)
                                 newletter = desc[newrow, newcol]
                                 done = bytes(newletter) in b'GH'
-                                rew = float(newletter == b'G')
+                                rew = 5 * float(newletter == b'G')
                                 rew = -5 * float(newletter == b'H')
                                 if rew == 0:
                                     rew = -1 * ( 5.0/(nrow*10))
