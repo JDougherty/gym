@@ -96,7 +96,7 @@ class FrozenLakeEnv(discrete.DiscreteEnv):
 
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, desc=None, map_name="4x4",is_slippery=True):
+    def __init__(self, desc=None, map_name="4x4",is_slippery=True, success_prob=0.8):
         if desc is None and map_name is None:
             desc = generate_random_map()
         elif desc is None:
@@ -136,22 +136,37 @@ class FrozenLakeEnv(discrete.DiscreteEnv):
                     if letter == b'G':
                         li.append((1.0, s, 1.0, True))
                     elif letter == b'H':
-                        li.append((1.0, s, 0, True))
+                        li.append((1.0, s, -1, True))
                     else:
                         if is_slippery:
-                            for b in [(a-1)%4, a, (a+1)%4]:
+                            list_of_b = []
+                            if a == DOWN:
+                                list_of_b = [RIGHT, LEFT, DOWN]
+                            if a == UP:
+                                list_of_b = [RIGHT, UP, DOWN]
+                            if a == LEFT:
+                                list_of_b = [UP, LEFT, DOWN]
+                            if a == RIGHT:
+                                list_of_b = [RIGHT, UP, DOWN]
+
+                            for b in list_of_b:
                                 newrow, newcol = inc(row, col, b)
                                 newstate = to_s(newrow, newcol)
                                 newletter = desc[newrow, newcol]
                                 done = bytes(newletter) in b'GH'
                                 rew = float(newletter == b'G')
-                                li.append((1.0/3.0, newstate, rew, done))
+                                rew = -5 * float(newletter == b'H')
+                                if rew == 0:
+                                    rew = -1 * ( 5.0/(nrow*10))
+                                prob = success_prob if b == a else ( 1 - success_prob) / ( len(list_of_b) -1 )
+                                li.append((prob, newstate, rew, done))
                         else:
                             newrow, newcol = inc(row, col, a)
                             newstate = to_s(newrow, newcol)
                             newletter = desc[newrow, newcol]
                             done = bytes(newletter) in b'GH'
                             rew = float(newletter == b'G')
+                            rew = -1 * float(newletter == b'H')
                             li.append((1.0, newstate, rew, done))
 
         super(FrozenLakeEnv, self).__init__(nS, nA, P, isd)
